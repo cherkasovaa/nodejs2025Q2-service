@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Album } from 'src/album/entities/album.entity';
 import { Artist } from 'src/artist/entities/artist.entity';
+import { Favs } from 'src/favs/entities/favs.entities';
 import { Track } from 'src/track/entities/track.entity';
 import { User } from 'src/user/entities/user.entity';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,25 +29,25 @@ export class DbService {
 
   public artists: Artist[] = [
     {
-      id: uuidv4(),
+      id: 'c8261bc5-9e5a-47a0-88a6-5cba3433373e',
       name: 'Beyoncé',
       grammy: true,
     },
     {
-      id: uuidv4(),
+      id: '84efcb36-bfad-486d-9f63-8c144299db8b',
       name: 'Jay-Z',
       grammy: true,
     },
   ];
   public albums: Album[] = [
     {
-      id: uuidv4(),
+      id: '39fcdc2f-c117-4321-9b77-7a4ffaec98b6',
       name: 'Perfect Duet',
       year: 2017,
       artistId: null,
     },
     {
-      id: uuidv4(),
+      id: '4527519d-8feb-4d35-b9d1-4e03c254d863',
       name: 'RENAISSANCE',
       year: 2022,
       artistId: null,
@@ -54,18 +55,24 @@ export class DbService {
   ];
   public tracks: Track[] = [
     {
-      id: uuidv4(),
+      id: 'a3488afc-164b-464a-8cbf-ed348f057db3',
       name: "Virgo's Groove",
       artistId: null,
       albumId: null,
       duration: 368,
     },
     {
-      id: uuidv4(),
+      id: 'ffe85afe-af9f-49f3-adeb-e9f2a6e302a1',
       name: 'Perfect Duet',
       artistId: null,
       albumId: null,
       duration: 260,
     },
   ];
+
+  public favs: Favs = {
+    artists: [],
+    albums: [],
+    tracks: [],
+  };
 }
