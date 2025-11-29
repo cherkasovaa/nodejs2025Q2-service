@@ -68,7 +68,11 @@ export class UserService {
   }
 
   remove(id: string) {
+    const toBeRemoved = this.findOne(id);
+
     this.db.users = this.db.users.filter((user) => user.id !== id);
+
+    return toBeRemoved;
   }
 
   private toResponse(user: User) {
