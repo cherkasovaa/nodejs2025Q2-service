@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { Album } from 'src/album/entities/album.entity';
 import { Artist } from 'src/artist/entities/artist.entity';
 import { User } from 'src/user/entities/user.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class DbService {
   public users: User[] = [
     {
-      id: 'def92471-4567-4efa-a282-3d8e570d8268',
+      id: uuidv4(),
       login: 'neko',
       password: '123456',
       version: 1,
@@ -14,7 +16,7 @@ export class DbService {
       updatedAt: 0,
     },
     {
-      id: '774147e1-e07c-4b1a-a9ca-c8ca598d8b99',
+      id: uuidv4(),
       login: 'qwerty',
       password: 'qwerty123',
       version: 1,
@@ -25,14 +27,28 @@ export class DbService {
 
   public artists: Artist[] = [
     {
-      id: '784147e2-e03c-4b1a-a9ca-c8ca598d8b99',
+      id: uuidv4(),
       name: 'Beyoncé',
       grammy: true,
     },
     {
-      id: 'def92473-4967-5efa-a882-1d8e570d9262',
+      id: uuidv4(),
       name: 'Jay-Z',
       grammy: true,
+    },
+  ];
+  public albums: Album[] = [
+    {
+      id: uuidv4(),
+      name: 'Perfect Duet',
+      year: 2017,
+      artistId: null,
+    },
+    {
+      id: uuidv4(),
+      name: 'RENAISSANCE',
+      year: 2022,
+      artistId: null,
     },
   ];
 }
