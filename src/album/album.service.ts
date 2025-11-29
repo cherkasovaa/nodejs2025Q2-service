@@ -48,6 +48,8 @@ export class AlbumService {
 
     this.db.albums = this.db.albums.filter((album) => album.id !== id);
 
+    this.db.cleanUpAlbumReferences(id);
+
     return toBeRemoved;
   }
 }

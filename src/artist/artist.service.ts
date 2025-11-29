@@ -46,6 +46,8 @@ export class ArtistService {
 
     this.db.artists = this.db.artists.filter((artist) => artist.id !== id);
 
+    this.db.cleanUpArtistReferences(id);
+
     return toBeRemoved;
   }
 }

@@ -22,7 +22,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
@@ -39,7 +39,7 @@ export class UserController {
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.update(id, updateUserDto);
   }

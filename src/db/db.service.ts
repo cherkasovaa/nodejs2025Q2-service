@@ -75,4 +75,30 @@ export class DbService {
     albums: [],
     tracks: [],
   };
+
+  cleanUpAlbumReferences(albumId: string) {
+    this.tracks.forEach((track) => {
+      if (track.albumId === albumId) {
+        track.albumId = null;
+      }
+    });
+
+    this.favs.albums = this.favs.albums.filter((id) => id !== albumId);
+  }
+
+  cleanUpArtistReferences(artistId: string) {
+    this.tracks.forEach((track) => {
+      if (track.artistId === artistId) {
+        track.artistId = null;
+      }
+    });
+
+    this.albums.forEach((album) => {
+      if (album.artistId === artistId) {
+        album.artistId = null;
+      }
+    });
+
+    this.favs.artists = this.favs.artists.filter((id) => id !== artistId);
+  }
 }
