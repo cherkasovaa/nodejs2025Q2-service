@@ -12,7 +12,6 @@ export class CreateAlbumDto {
   name: string;
 
   @IsNumber()
-  @IsNotEmpty()
   year: number;
 
   @IsUUID()

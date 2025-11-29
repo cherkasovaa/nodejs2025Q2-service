@@ -11,6 +11,7 @@ export class ArtistService {
   create(createArtistDto: CreateArtistDto) {
     const artist = {
       id: uuidv4(),
+      grammy: false,
       ...createArtistDto,
     };
 
