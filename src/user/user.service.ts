@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { User } from 'src/user/entities/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { DbService } from '../db/db.service';
@@ -26,11 +27,11 @@ export class UserService {
 
     this.db.users.push(user);
 
-    return this.toResponse(user);
+    return plainToInstance(User, user);
   }
 
   findAll() {
-    return this.db.users.map((user) => this.toResponse(user));
+    return this.db.users.map((user) => plainToInstance(User, user));
   }
 
   findOne(id: string) {
@@ -40,7 +41,7 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    return this.toResponse(user);
+    return plainToInstance(User, user);
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {
@@ -73,11 +74,5 @@ export class UserService {
     this.db.users = this.db.users.filter((user) => user.id !== id);
 
     return toBeRemoved;
-  }
-
-  private toResponse(user: User) {
-    const { password, ...rest } = user;
-
-    return rest;
   }
 }
