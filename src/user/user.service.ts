@@ -48,7 +48,7 @@ export class UserService {
     this.db.users = this.db.users.map((user) => {
       if (user.id === id) {
         if (updateUserDto.oldPassword !== user.password) {
-          throw new ForbiddenException('The old password is wrong');
+          throw new ForbiddenException();
         }
 
         const password = updateUserDto.newPassword;
@@ -57,7 +57,7 @@ export class UserService {
         return {
           ...user,
           password,
-          version: user.version++,
+          version: ++user.version,
           updatedAt,
         };
       }
