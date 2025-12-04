@@ -11,10 +11,10 @@ Rest API for a Home Library Service. The service allows you to manage users, art
 ## Tech Stack
 
 - **Framework:** [NestJS](https://nestjs.com/)
-- **Language:** TypeScript
-- **Database:** PostgreSQL
-- **ORM:** Prisma
-- **Containerization:** Docker
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Database:** [PostgreSQL](https://www.postgresql.org/)
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Containerization:** [Docker](https://www.docker.com/)
 
 ## API Resources
 
@@ -35,9 +35,48 @@ The API exposes the following RESTful endpoints:
 |           | `/favs/album/:id`  | `POST`, `DELETE`       | Add/Remove album from favorites   |
 |           | `/favs/artist/:id` | `POST`, `DELETE`       | Add/Remove artist from favorites  |
 
-## Downloading
+## Docker Hub (Pre-built Images)
+
+The application images are built and pushed to Docker Hub. **This allows for quick deployment without building the source code locally.**
+
+**Repositories:**
+- Application: `cherkasovaa/library-app`
+- Database: `cherkasovaa/library-db`
+
+### How to verify/pull images:
+
+You can pull the latest versions directly from the registry:
+
+```bash
+docker pull cherkasovaa/library-app
+docker pull cherkasovaa/library-db
+```
+  
+### How to run using pre-built images
+
+By default, `docker-compose.yml` in this repository is configured to build the app image from source (to ensure all local changes are applied).
+
+However, if you wish to run the application using the pre-built images from Docker Hub, you can modify `docker-compose.yml`:
+
+1. Remove `build: ...` sections.
+2. Add image: `cherkasovaa/library-app` (for app) and image: `cherkasovaa/library-db` (for postgres).
+3. Run `docker-compose up -d`.
+
+Example configuration for app service:
+```yaml
+app:
+  image: cherkasovaa/library-app
+  container_name: library_app
+  restart: always
+  env_file:
+```
+
+The API will be available at: `http://localhost:4000/` during a 1 minute.
+
+## Installation
 
 ```
+# Clone the repository
 git clone https://github.com/cherkasovaa/nodejs2025Q2-service.git
 cd nodejs2025Q2-service
 ```
@@ -47,6 +86,10 @@ cd nodejs2025Q2-service
 ```
 npm install
 ```
+
+> **Note for users in restricted regions (e.g., RF):**
+> You may encounter network issues (connection timeout / `ECONNRESET`) when Prisma tries to download platform-specific binaries during `npm install`.
+> **Solution:** Use a VPN for the installation step, or run the application **via Docker** (Method 1), as the Docker setup is optimized to handle these dependencies automatically.
 
 ## Create .env file
 
@@ -58,7 +101,7 @@ cp .env.example .env
 
 ## Running application
 
-### Using Docker
+### Method 1: Using Docker (Recommended)
 
 1. Build and start containers:
 ```
@@ -84,7 +127,7 @@ Expected `library_postgres` has the status `healthy` and `library_app` has the s
 docker-compose down -v
 ```
 
-### Local Development
+### Method 2: Local Development
 
 1. Start a PostgreSQL instance locally (or use Docker just for DB)
 
@@ -96,6 +139,7 @@ docker-compose up -d postgres
 ```
 npx prisma migrate dev
 ```
+
 3. Start the application:
   ```
   # development mode
@@ -112,10 +156,10 @@ npx prisma migrate dev
   npm run start:prod
   ```
 
-```
-# development
-npm run start
-```
+  ```
+  # development
+  npm run start
+  ```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
