@@ -21,14 +21,6 @@ export class UserService {
       ...user,
       createdAt: new Date(user.createdAt).getTime(),
       updatedAt: new Date(user.updatedAt).getTime(),
-      // createdAt:
-      //   user.createdAt instanceof Date
-      //     ? user.createdAt.getTime()
-      //     : user.createdAt,
-      // updatedAt:
-      //   user.updatedAt instanceof Date
-      //     ? user.updatedAt.getTime()
-      //     : user.updatedAt,
     });
   }
 
