@@ -1,32 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from 'src/prisma.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 
 @Injectable()
 export class AlbumService {
-  constructor(private db: DbService) {}
+  private db: PrismaService;
 
-  create(createAlbumDto: CreateAlbumDto) {
-    const id = uuidv4();
-    const album = {
-      id,
-      artistId: null,
-      ...createAlbumDto,
-    };
+  constructor(private prisma: PrismaService) {
+    this.db = this.prisma;
+  }
 
-    this.db.albums.push(album);
-
+  async create(createAlbumDto: CreateAlbumDto) {
+    const album = await this.db.album.create({
+      data: {
+        ...createAlbumDto,
+      },
+    });
     return album;
   }
 
-  findAll() {
-    return this.db.albums;
+  async findAll() {
+    return await this.db.album.findMany();
   }
 
-  findOne(id: string) {
-    const album = this.db.albums.find((album) => album.id === id);
+  async findOne(id: string) {
+    const album = await this.db.album.findUnique({ where: { id } });
 
     if (!album) {
       throw new NotFoundException('The album is not found');
@@ -35,20 +34,29 @@ export class AlbumService {
     return album;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    const album = this.findOne(id);
+  async update(id: string, updateAlbumDto: UpdateAlbumDto) {
+    const album = await this.db.album.findUnique({ where: { id } });
 
-    Object.assign(album, updateAlbumDto);
+    if (!album) {
+      throw new NotFoundException('The album is not found');
+    }
 
-    return album;
+    return await this.db.album.update({
+      where: { id },
+      data: {
+        ...updateAlbumDto,
+      },
+    });
   }
 
-  remove(id: string) {
-    const toBeRemoved = this.findOne(id);
+  async remove(id: string) {
+    const toBeRemoved = await this.db.album.findUnique({ where: { id } });
 
-    this.db.albums = this.db.albums.filter((album) => album.id !== id);
+    if (!toBeRemoved) {
+      throw new NotFoundException('The album is not found');
+    }
 
-    this.db.cleanUpAlbumReferences(id);
+    await this.db.album.delete({ where: { id } });
 
     return toBeRemoved;
   }
