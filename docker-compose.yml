@@ -47,7 +47,6 @@ services:
     volumes:
       - ./src:/usr/app/src
       - ./prisma:/usr/app/prisma
-      - /usr/app/node_modules
     networks:
       - library_network
 
