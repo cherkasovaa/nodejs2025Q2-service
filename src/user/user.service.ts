@@ -11,55 +11,58 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  private db: PrismaService;
+  constructor(private prisma: PrismaService) {
+    this.db = this.prisma;
+  }
 
-  private db = this.prisma; // Using PrismaService as DbService
-
-  private mapToUserEntity(user: any): User {
+  private async mapToUserEntity(user: any): Promise<User> {
     return plainToInstance(User, {
       ...user,
-      createdAt:
-        user.createdAt instanceof Date
-          ? user.createdAt.getTime()
-          : user.createdAt,
-      updatedAt:
-        user.updatedAt instanceof Date
-          ? user.updatedAt.getTime()
-          : user.updatedAt,
+      createdAt: new Date(user.createdAt).getTime(),
+      updatedAt: new Date(user.updatedAt).getTime(),
+      // createdAt:
+      //   user.createdAt instanceof Date
+      //     ? user.createdAt.getTime()
+      //     : user.createdAt,
+      // updatedAt:
+      //   user.updatedAt instanceof Date
+      //     ? user.updatedAt.getTime()
+      //     : user.updatedAt,
     });
   }
 
-  create(createUserDto: CreateUserDto) {
-    const dbUser = this.db.user.create({
+  async create(createUserDto: CreateUserDto) {
+    const dbUser = await this.db.user.create({
       data: {
         ...createUserDto,
         version: 1,
       },
     });
 
-    this.mapToUserEntity(dbUser);
+    return await this.mapToUserEntity(dbUser);
   }
 
   async findAll() {
     const dbUsers = await this.db.user.findMany();
-    return dbUsers.map((user) => this.mapToUserEntity(user));
+    return await Promise.all(dbUsers.map((user) => this.mapToUserEntity(user)));
   }
 
   async findOne(id: string) {
     const user = await this.db.user.findUnique({ where: { id } });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('The user is not found');
     }
 
-    return this.mapToUserEntity(user);
+    return await this.mapToUserEntity(user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.db.user.findUnique({ where: { id } });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('The user is not found');
     }
 
     if (updateUserDto.oldPassword !== user.password) {
@@ -74,14 +77,18 @@ export class UserService {
       },
     });
 
-    return this.mapToUserEntity(updatedUser);
+    return await this.mapToUserEntity(updatedUser);
   }
 
   async remove(id: string) {
-    const toBeRemoved = await this.findOne(id);
+    const toBeRemoved = await this.db.user.findUnique({ where: { id } });
+
+    if (!toBeRemoved) {
+      throw new NotFoundException('The user is not found');
+    }
 
     await this.db.user.delete({ where: { id } });
 
-    return toBeRemoved;
+    return await this.mapToUserEntity(toBeRemoved);
   }
 }
