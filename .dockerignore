@@ -1,0 +1,51 @@
+# Ignore prisma files
+prisma/client/ 
+/generated
+
+# Ignore Dockerfiles
+Dockerfile
+docker/Dockerfile.*
+docker-compose.yml
+
+# Ignore node modules
+node_modules/
+
+# Ignore all markdown files
+*.md
+
+# Ignore all log files
+*.log
+
+# Ignore the build directory
+/build
+/dist
+
+# Ignore all temporary files
+*.tmp
+
+# Ignore node modules, they will be recreated in the build process
+node_modules/
+
+# Ignore all .git directories
+.git/
+.gitignore 
+
+# Ignore environment configuration files containing secrets
+.env
+.env.*
+
+# Ignore SSL certificate files
+*.crt
+*.key
+
+# Exclude large documentation files
+/docs
+
+# Ignore test directories
+/test
+
+# Ignore all .log files in all directories
+**/*.log
+
+# Ignore all backup directories
+**/backup/
