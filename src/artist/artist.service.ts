@@ -1,31 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from 'src/prisma.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Injectable()
 export class ArtistService {
-  constructor(private db: DbService) {}
+  private db: PrismaService;
 
-  create(createArtistDto: CreateArtistDto) {
-    const artist = {
-      id: uuidv4(),
-      grammy: false,
-      ...createArtistDto,
-    };
+  constructor(private prisma: PrismaService) {
+    this.db = this.prisma;
+  }
 
-    this.db.artists.push(artist);
-
+  async create(createArtistDto: CreateArtistDto) {
+    const artist = await this.db.artist.create({
+      data: {
+        ...createArtistDto,
+      },
+    });
     return artist;
   }
 
-  findAll() {
-    return this.db.artists;
+  async findAll() {
+    return await this.db.artist.findMany();
   }
 
-  findOne(id: string) {
-    const artist = this.db.artists.find((artist) => artist.id === id);
+  async findOne(id: string) {
+    const artist = await this.db.artist.findUnique({ where: { id } });
 
     if (!artist) {
       throw new NotFoundException('The artist is not found');
@@ -34,20 +34,30 @@ export class ArtistService {
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
-    const artist = this.findOne(id);
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    const artist = await this.db.artist.findUnique({ where: { id } });
 
-    Object.assign(artist, updateArtistDto);
+    if (!artist) {
+      throw new NotFoundException('The artist is not found');
+    }
 
-    return artist;
+    const updatedArtist = await this.db.artist.update({
+      where: { id },
+      data: {
+        ...updateArtistDto,
+      },
+    });
+    return updatedArtist;
   }
 
-  remove(id: string) {
-    const toBeRemoved = this.findOne(id);
+  async remove(id: string) {
+    const toBeRemoved = await this.db.artist.findUnique({ where: { id } });
 
-    this.db.artists = this.db.artists.filter((artist) => artist.id !== id);
+    if (!toBeRemoved) {
+      throw new NotFoundException('The artist is not found');
+    }
 
-    this.db.cleanUpArtistReferences(id);
+    await this.db.artist.delete({ where: { id } });
 
     return toBeRemoved;
   }
