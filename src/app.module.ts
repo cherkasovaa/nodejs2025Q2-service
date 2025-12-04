@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from 'src/db/db.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from 'src/prisma.module';
 import { AlbumModule } from './album/album.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
