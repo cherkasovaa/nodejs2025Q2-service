@@ -4,74 +4,83 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from 'src/user/entities/user.entity';
-import { v4 as uuidv4 } from 'uuid';
-import { DbService } from '../db/db.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private db: DbService) {}
+  constructor(private prisma: PrismaService) {}
+
+  private db = this.prisma; // Using PrismaService as DbService
+
+  private mapToUserEntity(user: any): User {
+    return plainToInstance(User, {
+      ...user,
+      createdAt:
+        user.createdAt instanceof Date
+          ? user.createdAt.getTime()
+          : user.createdAt,
+      updatedAt:
+        user.updatedAt instanceof Date
+          ? user.updatedAt.getTime()
+          : user.updatedAt,
+    });
+  }
 
   create(createUserDto: CreateUserDto) {
-    const timestamp = Date.now();
+    const dbUser = this.db.user.create({
+      data: {
+        ...createUserDto,
+        version: 1,
+      },
+    });
 
-    const user = {
-      ...createUserDto,
-      id: uuidv4(),
-      version: 1,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-
-    this.db.users.push(user);
-
-    return plainToInstance(User, user);
+    this.mapToUserEntity(dbUser);
   }
 
-  findAll() {
-    return this.db.users.map((user) => plainToInstance(User, user));
+  async findAll() {
+    const dbUsers = await this.db.user.findMany();
+    return dbUsers.map((user) => this.mapToUserEntity(user));
   }
 
-  findOne(id: string) {
-    const user = this.db.users.find((user) => user.id === id);
+  async findOne(id: string) {
+    const user = await this.db.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new NotFoundException();
     }
 
-    return plainToInstance(User, user);
+    return this.mapToUserEntity(user);
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    this.db.users = this.db.users.map((user) => {
-      if (user.id === id) {
-        if (updateUserDto.oldPassword !== user.password) {
-          throw new ForbiddenException();
-        }
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.db.user.findUnique({ where: { id } });
 
-        const password = updateUserDto.newPassword;
-        const updatedAt = Date.now();
+    if (!user) {
+      throw new NotFoundException();
+    }
 
-        return {
-          ...user,
-          password,
-          version: ++user.version,
-          updatedAt,
-        };
-      }
+    if (updateUserDto.oldPassword !== user.password) {
+      throw new ForbiddenException();
+    }
 
-      return user;
+    const updatedUser = await this.db.user.update({
+      where: { id },
+      data: {
+        password: updateUserDto.newPassword,
+        version: { increment: 1 },
+      },
     });
 
-    return this.findOne(id);
+    return this.mapToUserEntity(updatedUser);
   }
 
-  remove(id: string) {
-    const toBeRemoved = this.findOne(id);
+  async remove(id: string) {
+    const toBeRemoved = await this.findOne(id);
 
-    this.db.users = this.db.users.filter((user) => user.id !== id);
+    await this.db.user.delete({ where: { id } });
 
     return toBeRemoved;
   }

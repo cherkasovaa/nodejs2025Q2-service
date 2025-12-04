@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from 'src/db/db.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { AlbumModule } from './album/album.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArtistModule } from './artist/artist.module';
-import { UserModule } from './user/user.module';
-import { AlbumModule } from './album/album.module';
-import { TrackModule } from './track/track.module';
 import { FavsModule } from './favs/favs.module';
+import { TrackModule } from './track/track.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
+    PrismaModule,
     UserModule,
     DbModule,
     ArtistModule,
