@@ -6,13 +6,15 @@ Rest API for a Home Library Service. The service allows you to manage users, art
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker Desktop - [Download & Install Docker](https://www.docker.com/)
 
 ## Tech Stack
 
 - **Framework:** [NestJS](https://nestjs.com/)
-- **Language:** TypeScript
-- **ID Generation:** uuid
-- **Database:** In-memory storage
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Database:** [PostgreSQL](https://www.postgresql.org/)
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Containerization:** [Docker](https://www.docker.com/)
 
 ## API Resources
 
@@ -33,9 +35,48 @@ The API exposes the following RESTful endpoints:
 |           | `/favs/album/:id`  | `POST`, `DELETE`       | Add/Remove album from favorites   |
 |           | `/favs/artist/:id` | `POST`, `DELETE`       | Add/Remove artist from favorites  |
 
-## Downloading
+## Docker Hub (Pre-built Images)
+
+The application images are built and pushed to Docker Hub. **This allows for quick deployment without building the source code locally.**
+
+**Repositories:**
+- Application: `cherkasovaa/library-app`
+- Database: `cherkasovaa/library-db`
+
+### How to verify/pull images:
+
+You can pull the latest versions directly from the registry:
+
+```bash
+docker pull cherkasovaa/library-app
+docker pull cherkasovaa/library-db
+```
+  
+### How to run using pre-built images
+
+By default, `docker-compose.yml` in this repository is configured to build the app image from source (to ensure all local changes are applied).
+
+However, if you wish to run the application using the pre-built images from Docker Hub, you can modify `docker-compose.yml`:
+
+1. Remove `build: ...` sections.
+2. Add image: `cherkasovaa/library-app` (for app) and image: `cherkasovaa/library-db` (for postgres).
+3. Run `docker-compose up -d`.
+
+Example configuration for app service:
+```yaml
+app:
+  image: cherkasovaa/library-app
+  container_name: library_app
+  restart: always
+  env_file:
+```
+
+The API will be available at: `http://localhost:4000/` during a 1 minute.
+
+## Installation
 
 ```
+# Clone the repository
 git clone https://github.com/cherkasovaa/nodejs2025Q2-service.git
 cd nodejs2025Q2-service
 ```
@@ -46,24 +87,79 @@ cd nodejs2025Q2-service
 npm install
 ```
 
+> **Note for users in restricted regions (e.g., RF):**
+> You may encounter network issues (connection timeout / `ECONNRESET`) when Prisma tries to download platform-specific binaries during `npm install`.
+> **Solution:** Use a VPN for the installation step, or run the application **via Docker** (Method 1), as the Docker setup is optimized to handle these dependencies automatically.
+
 ## Create .env file
-Сopy from `.env.example`: 
+
 ```
+# Copy from example
 cp .env.example .env
 ```
 **Default port**: 4000
 
 ## Running application
 
+### Method 1: Using Docker (Recommended)
+
+1. Build and start containers:
 ```
-# development
-npm run start
+docker-compose up -d --build
 ```
 
+The API will be available at `http://localhost:4000`.
+OpenAPI documentation: `http://localhost:4000/doc`
+
+2. To stop containers:
 ```
-# watch mode
-npm run start:dev
+docker-compose down
 ```
+
+3. Check the status of the containers
+   ```
+   docker ps
+   ```
+Expected `library_postgres` has the status `healthy` and `library_app` has the status `Up`.
+
+4. Stop and delete the DB 
+```
+docker-compose down -v
+```
+
+### Method 2: Local Development
+
+1. Start a PostgreSQL instance locally (or use Docker just for DB)
+
+```
+docker-compose up -d postgres
+```
+
+2. Apply database migrations:
+```
+npx prisma migrate dev
+```
+
+3. Start the application:
+  ```
+  # development mode
+  npm run start:dev
+  ```
+
+  ```
+  # watch mode
+  npm run start:dev
+  ```
+
+  ```
+  # production mode
+  npm run start:prod
+  ```
+
+  ```
+  # development
+  npm run start
+  ```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
@@ -107,8 +203,31 @@ npm run lint
 npm run format
 ```
 
-### Debugging in VSCode
+## Commands Cheat Sheet
 
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+| Command                                   | Description                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| **NPM & Development**                     |
+| `npm install`                             | Install project dependencies                                         |
+| `npm run start:dev`                       | Start NestJS in watch (development) mode (local run)                 |
+| `npm run build`                           | Build the project into the `dist` folder                             |
+| `npm run start:prod`                      | Start the app from the built `dist` (production mode)                |
+| `npm run test`                            | Run all tests                                                        |
+| `npm run test -- <path-to-spec>`          | Run a specific test file (e.g. `test/users.e2e.spec.ts`)             |
+| `npm run lint`                            | Run ESLint (auto-fix where possible)                                 |
+| `npm run format`                          | Format code with Prettier                                            |
+| `npm run scan:vuln`                       | Scan dependencies for security vulnerabilities                       |
+| **Docker**                                |
+| `docker-compose up -d --build`            | Build images and start all services (app + PostgreSQL) in background |
+| `docker-compose up -d`                    | Start containers without rebuilding                                  |
+| `docker-compose up -d postgres`           | Start only PostgreSQL service in Docker                              |
+| `docker-compose down`                     | Stop and remove containers (keep volumes/data)                       |
+| `docker-compose down -v`                  | Stop containers and remove volumes (reset database)                  |
+| `docker ps`                               | Show running containers                                              |
+| `docker logs -f library_app`              | View application logs in real-time                                   |
+| `docker logs library_app --tail 100`      | Show last 100 log lines from the app container                       |
+| `docker logs library_postgres --tail 100` | Show last 100 log lines from the PostgreSQL container                |
+| **Prisma (Database)**                     |
+| `npx prisma migrate dev`                  | Create and apply database migrations (local dev)                     |
+| `npx prisma studio`                       | Open Prisma Studio (GUI to view database data)                       |
+| `npx prisma generate`                     | Generate Prisma Client assets                                        |

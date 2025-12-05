@@ -3,103 +3,118 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
+// import { DbService } from 'src/db/db.service';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class FavsService {
-  constructor(private db: DbService) {}
+  private db: PrismaService;
 
-  findAll() {
+  constructor(private prisma: PrismaService) {
+    this.db = this.prisma;
+  }
+
+  async findAll() {
+    const favorites = await this.db.favorite.findMany({
+      include: {
+        album: true,
+        artist: true,
+        track: true,
+      },
+    });
+
     return {
-      tracks: this.toResponse('tracks'),
-      albums: this.toResponse('albums'),
-      artists: this.toResponse('artists'),
+      artists: favorites
+        .map((fav) => fav.artist)
+        .filter((item) => item !== null),
+      albums: favorites.map((fav) => fav.album).filter((item) => item !== null),
+      tracks: favorites.map((fav) => fav.track).filter((item) => item !== null),
     };
   }
 
-  addTrack(id: string) {
-    const track = this.db.tracks.find((track) => track.id === id);
+  async addTrack(id: string) {
+    const track = await this.db.track.findUnique({ where: { id } });
 
     if (!track) {
       throw new UnprocessableEntityException('Track not found');
     }
 
-    this.db.favs.tracks.push(id);
-
-    return track;
+    return await this.db.favorite.create({
+      data: {
+        trackId: id,
+      },
+    });
   }
 
-  addAlbum(id: string) {
-    const album = this.db.albums.find((album) => album.id === id);
+  async addAlbum(id: string) {
+    const album = await this.db.album.findUnique({ where: { id } });
 
     if (!album) {
       throw new UnprocessableEntityException('The album not found');
     }
 
-    this.db.favs.albums.push(id);
-
-    return album;
+    return await this.db.favorite.create({
+      data: {
+        albumId: id,
+      },
+    });
   }
 
-  addArtist(id: string) {
-    const artist = this.db.artists.find((artist) => artist.id === id);
+  async addArtist(id: string) {
+    const artist = await this.db.artist.findUnique({ where: { id } });
 
     if (!artist) {
       throw new UnprocessableEntityException('The artist not found');
     }
 
-    this.db.favs.artists.push(id);
-
-    return artist;
+    return await this.db.favorite.create({
+      data: {
+        artistId: id,
+      },
+    });
   }
 
-  deleteTrack(id: string) {
-    const toBeRemoved = this.findOne(id, 'tracks');
+  async deleteTrack(id: string) {
+    const track = await this.db.favorite.findFirst({ where: { trackId: id } });
 
-    this.db.favs.tracks = this.db.favs.tracks.filter(
-      (trackId) => trackId !== id,
-    );
-
-    return toBeRemoved;
-  }
-
-  deleteAlbum(id: string) {
-    const toBeRemoved = this.findOne(id, 'albums');
-
-    this.db.favs.albums = this.db.favs.albums.filter(
-      (albumId) => albumId !== id,
-    );
-
-    return toBeRemoved;
-  }
-
-  deleteArtist(id: string) {
-    const toBeRemoved = this.findOne(id, 'artists');
-
-    this.db.favs.artists = this.db.favs.artists.filter(
-      (artistId) => artistId !== id,
-    );
-
-    return toBeRemoved;
-  }
-
-  private findOne(id: string, type: 'artists' | 'albums' | 'tracks') {
-    const arr = this.db.favs[type];
-    const item = arr.find((itemId) => itemId === id);
-
-    if (!item) {
-      throw new NotFoundException();
+    if (!track) {
+      throw new NotFoundException('Track is not in favorites');
     }
 
-    return item;
+    return await this.db.favorite.delete({
+      where: {
+        id: track.id,
+      },
+    });
   }
 
-  private toResponse(type: 'artists' | 'albums' | 'tracks') {
-    const dbFavs = this.db.favs[type];
-    const arr = this.db[type];
+  async deleteAlbum(id: string) {
+    const album = await this.db.favorite.findFirst({ where: { albumId: id } });
 
-    return dbFavs
-      .map((id: string) => arr.find((item) => item.id === id))
-      .filter(Boolean);
+    if (!album) {
+      throw new NotFoundException('Album is not in favorites');
+    }
+
+    return await this.db.favorite.delete({
+      where: {
+        id: album.id,
+      },
+    });
+  }
+
+  async deleteArtist(id: string) {
+    const artist = await this.db.favorite.findFirst({
+      where: { artistId: id },
+    });
+
+    if (!artist) {
+      throw new NotFoundException('Artist is not in favorites');
+    }
+
+    return await this.db.favorite.delete({
+      where: {
+        id: artist.id,
+      },
+    });
   }
 }

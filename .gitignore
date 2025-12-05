@@ -33,3 +33,9 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+.env
+src/prisma/generated
+src/prisma/migrations
+
+tsconfig.build.tsbuildinfo

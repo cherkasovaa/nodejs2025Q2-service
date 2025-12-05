@@ -1,31 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from 'src/prisma.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 
 @Injectable()
 export class TrackService {
-  constructor(private db: DbService) {}
+  private db: PrismaService;
+  constructor(private prisma: PrismaService) {
+    this.db = this.prisma;
+  }
 
-  create(createTrackDto: CreateTrackDto) {
-    const track = {
-      id: uuidv4(),
-      artistId: null,
-      albumId: null,
-      ...createTrackDto,
-    };
-
-    this.db.tracks.push(track);
+  async create(createTrackDto: CreateTrackDto) {
+    const track = await this.db.track.create({
+      data: {
+        ...createTrackDto,
+      },
+    });
     return track;
   }
 
-  findAll() {
-    return this.db.tracks;
+  async findAll() {
+    return await this.db.track.findMany();
   }
 
-  findOne(id: string) {
-    const track = this.db.tracks.find((track) => track.id === id);
+  async findOne(id: string) {
+    const track = await this.db.track.findUnique({ where: { id } });
 
     if (!track) {
       throw new NotFoundException('The track not found');
@@ -34,19 +33,32 @@ export class TrackService {
     return track;
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
-    const track = this.findOne(id);
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
+    const track = await this.db.track.findUnique({ where: { id } });
 
-    Object.assign(track, updateTrackDto);
+    if (!track) {
+      throw new NotFoundException('The track is not found');
+    }
 
-    return track;
+    const updatedTrack = await this.db.track.update({
+      where: { id },
+      data: {
+        ...updateTrackDto,
+      },
+    });
+
+    return updatedTrack;
   }
 
-  remove(id: string) {
-    const toBeRemove = this.findOne(id);
+  async remove(id: string) {
+    const toBeRemoved = await this.db.track.findUnique({ where: { id } });
 
-    this.db.tracks = this.db.tracks.filter((track) => track.id !== id);
+    if (!toBeRemoved) {
+      throw new NotFoundException('The track is not found');
+    }
 
-    return toBeRemove;
+    await this.db.track.delete({ where: { id } });
+
+    return toBeRemoved;
   }
 }
