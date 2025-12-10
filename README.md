@@ -143,12 +143,7 @@ npx prisma migrate dev
 3. Start the application:
   ```
   # development mode
-  npm run start:dev
-  ```
-
-  ```
-  # watch mode
-  npm run start:dev
+  npm run start
   ```
 
   ```
@@ -157,8 +152,8 @@ npx prisma migrate dev
   ```
 
   ```
-  # development
-  npm run start
+  # watch mode
+  npm run start:dev
   ```
 
 After starting the app on port (4000 as default) you can open
@@ -202,6 +197,15 @@ npm run lint
 ```
 npm run format
 ```
+
+## Troubleshooting / Common Issues
+| Issue                                      | Possible Cause                                                       | Solution                                                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm install` fails with `ECONNRESET`      | Network restrictions (e.g. in RF) preventing Prisma binary download. | Turn on VPN and try again, or use Method 1 (Docker) to run the app.                               |
+| `P1001: Can't reach database server`       | Database container is not running or .env host is wrong.             | 1. Ensure POSTGRES_HOST=localhost in .env for local run.<br>2. Run docker-compose up -d postgres. |
+| Bind for `0.0.0.0:5432` failed             | Port `5432` is already occupied by another Postgres instance.        | Stop other Postgres services or containers (`docker ps` -> `docker stop <id>`)                    |
+| Tests fail with `Unique constraint failed` | Database contains old data from previous runs.                       | Clean the database: `docker-compose down -v` then restart.                                        |
+
 
 ## Commands Cheat Sheet
 
