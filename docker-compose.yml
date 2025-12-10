@@ -1,9 +1,9 @@
 services:
   postgres:
-    build: 
-      context: ./docker
-      dockerfile: Dockerfile.db
-    # image: cherkasovaa/library-db # uncomment to use pre-built image from Docker Hub
+    # build: 
+    #   context: ./docker
+    #   dockerfile: Dockerfile.db
+    image: cherkasovaa/library-db # uncomment to use pre-built image from Docker Hub
     container_name: library_postgres
     restart: always
     env_file:
@@ -26,10 +26,10 @@ services:
       - postgres_logs:/var/log/postgresql
 
   app:
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile.app
-    # image: cherkasovaa/library-app # uncomment to use pre-built image from Docker Hub
+    # build:
+    #   context: .
+    #   dockerfile: ./docker/Dockerfile.app
+    image: cherkasovaa/library-app # uncomment to use pre-built image from Docker Hub
     container_name: library_app
     restart: always
     env_file:

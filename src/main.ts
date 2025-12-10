@@ -4,11 +4,17 @@ import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
 import { readFile } from 'fs/promises';
 import { load } from 'js-yaml';
-import { AppModule } from './app.module';
 import { join } from 'path';
+import { LoggingService } from 'src/logging/logging.service';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  const logger = app.get(LoggingService);
+  app.useLogger(logger);
 
   app.useGlobalPipes(
     new ValidationPipe({
