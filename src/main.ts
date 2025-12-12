@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { readFile } from 'fs/promises';
 import { load } from 'js-yaml';
 import { join } from 'path';
+import { ExceptionsFilter } from 'src/logging/exceptions.filter';
 import { LoggingService } from 'src/logging/logging.service';
 import { AppModule } from './app.module';
 
@@ -15,6 +16,7 @@ async function bootstrap() {
 
   const logger = app.get(LoggingService);
   app.useLogger(logger);
+  app.useGlobalFilters(new ExceptionsFilter(logger));
 
   app.useGlobalPipes(
     new ValidationPipe({
