@@ -36,6 +36,20 @@ async function bootstrap() {
     console.error('Failed to load OpenAPI spec:', error.message);
   }
 
+  process.on('uncaughtException', (error: Error) => {
+    logger.error(
+      `Caught exception: ${error}\n` + `Exception origin: ${error.stack}`,
+    );
+    process.exit(1);
+  });
+
+  process.on(
+    'unhandledRejection',
+    (reason: string, promise: Promise<unknown>) => {
+      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    },
+  );
+
   await app.listen(process.env.PORT || 4000);
 }
 bootstrap();
