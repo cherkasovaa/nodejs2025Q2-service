@@ -1,5 +1,11 @@
 import { Injectable, LoggerService } from '@nestjs/common';
-import { appendFileSync, mkdirSync, renameSync, statSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  renameSync,
+  statSync,
+} from 'node:fs';
 import { join } from 'path';
 
 @Injectable()
@@ -80,24 +86,33 @@ export class LoggingService implements LoggerService {
   }
 
   writeToFile(filename: string, message: string) {
+    let currentFileSize = 0;
     const filePath = join(this.logDir, filename);
     const msgSize = Buffer.byteLength(message, 'utf8');
 
     try {
-      const stats = statSync(filePath);
+      if (existsSync(filePath)) {
+        currentFileSize = statSync(filePath).size;
 
-      if (stats.size >= this.maxFileSize + msgSize) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        if (
+          currentFileSize + msgSize > this.maxFileSize &&
+          statSync(filePath)
+        ) {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
-        const name = filename.replace('.log', '');
-        const newFileName = `${name}_${timestamp}.log`;
-        const newFilePath = join(this.logDir, newFileName);
+          const name = filename.replace('.log', '');
+          const newFileName = `${name}_${timestamp}.log`;
+          const newFilePath = join(this.logDir, newFileName);
 
-        renameSync(filePath, newFilePath);
+          renameSync(filePath, newFilePath);
+        }
       }
 
       appendFileSync(filePath, message + '\n', 'utf8');
     } catch (error) {
+      if (error.code !== 'ENOENT')
+        console.error(`Failed to write log: ${error.message}`);
+
       console.error(`Failed to write log to file: ${error.message}`);
     }
   }
