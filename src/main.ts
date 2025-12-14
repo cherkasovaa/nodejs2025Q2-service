@@ -40,7 +40,6 @@ async function bootstrap() {
     logger.error(
       `Caught exception: ${error}\n` + `Exception origin: ${error.stack}`,
     );
-    process.exit(1);
   });
 
   process.on(
