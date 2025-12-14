@@ -235,3 +235,49 @@ npm run format
 | `npx prisma migrate dev`                  | Create and apply database migrations (local dev)                     |
 | `npx prisma studio`                       | Open Prisma Studio (GUI to view database data)                       |
 | `npx prisma generate`                     | Generate Prisma Client assets                                        |
+
+## Environment Configuration
+
+The application requires the following environment variables to be set in the `.env` file:
+
+Logging:
+- `LOG_LEVEL`: Logging level (0=error, 1=warn, 2=log, 3=debug, 4=verbose). Default: `2`.
+- `LOG_MAX_FILE_SIZE`: Max size of a log file in **kB** before rotation. Default: `10`.
+
+Authentication (JWT):
+- `CRYPT_SALT`: Salt rounds for bcrypt hashing. Default: `10`.
+- `JWT_SECRET_KEY`: Secret key for signing Access Token.
+- `JWT_SECRET_REFRESH_KEY`: Secret key for signing Refresh Token.
+- `TOKEN_EXPIRE_TIME`: Expiration time for Access Token (e.g., `1h`).
+- `TOKEN_REFRESH_EXPIRE_TIME`: Expiration time for Refresh Token (e.g., `24h`).
+
+## Implemented Features
+
+### 1. Logging & Error Handling
+- **Custom Logging Service**: Implemented a custom logger that writes logs to `stdout` and to the file system.
+- **File Logging**: Logs are stored in the `logs/` directory.
+  - `app.log`: Contains all application logs.
+  - `error.log`: Contains only error logs.
+- **Log Rotation**: When a log file exceeds `LOG_MAX_FILE_SIZE`, it is rotated (renamed with a timestamp), and a new file is created.
+- **Global Exception Filter**: Catches all unhandled exceptions and returns a standardized JSON response (`500 Internal Server Error`).
+- **Uncaught Exception Handling**: The application catches `uncaughtException` and `unhandledRejection`, logs them, and prevents the crash (for testing purposes).
+
+### 2. Authentication & Authorization
+- **JWT Based Auth**: Implemented Access and Refresh tokens.
+- **Endpoints**:
+  - `POST /auth/signup`: Register a new user (password is hashed using bcrypt).
+  - `POST /auth/login`: Login and receive Access/Refresh tokens.
+  - `POST /auth/refresh`: Refresh expired tokens.
+- **Route Protection**: Global `AuthGuard` protects all routes by default.
+- **Public Routes**: The root (`/`), documentation (`/doc`), and auth routes are publicly accessible using the `@Public()` decorator.
+
+## Usage
+
+### Logging
+Check the root directory of the project for the `logs/` folder after making requests. You will see `app.log` and `error.log` files there.
+
+### Authentication
+1. **Signup**: Register a user at `/auth/signup`.
+2. **Login**: Login at `/auth/login` to get the `accessToken`.
+3. **Authorized Requests**: Add the header `Authorization: Bearer <your_access_token>` to access protected routes (e.g., `/users`, `/tracks`).
+4. **Refresh**: Use `/auth/refresh` with `{ "refreshToken": "..." }` in the body to get a new pair of tokens.
